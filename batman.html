@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DHANUSH_RAJ // BAT-OS TERMINAL</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap"
+    rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bat: {
+              black: '#0a0a0c',
+              dark: '#121215',
+              gray: '#25262b',
+              yellow: '#FACC15', // Tactical Bat Yellow
+              red: '#dc2626',
+              cyan: '#06b6d4'
+            }
+          },
+          fontFamily: {
+            hud: ['Rajdhani', 'sans-serif'],
+            mono: ['Share Tech Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #050507;
+      color: #e2e8f0;
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+      /* Grid background */
+      background-image:
+        linear-gradient(rgba(37, 38, 43, 0.3) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(37, 38, 43, 0.3) 1px, transparent 1px);
+      background-size: 30px 30px;
+    }
+
+    /* Scanline effect */
+    .scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.2));
+      background-size: 100% 4px;
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.6;
+    }
+
+    /* Vignette */
+    .vignette {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle, transparent 50%, #000000 150%);
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    /* Corner clipped panels (Sci-Fi UI border) */
+    .hud-panel {
+      position: relative;
+      background: rgba(18, 18, 21, 0.85);
+      border: 1px solid #3f3f46;
+      backdrop-filter: blur(4px);
+      clip-path: polygon(0 15px,
+          15px 0,
+          100% 0,
+          100% calc(100% - 15px),
+          calc(100% - 15px) 100%,
+          0 100%);
+      transition: all 0.3s ease;
+    }
+
+    .hud-panel:hover {
+      border-color: #FACC15;
+      box-shadow: inset 0 0 15px rgba(250, 204, 21, 0.1);
+    }
+
+    /* Crosshairs on corners */
+    .crosshair-box {
+      position: relative;
+    }
+
+    .crosshair-box::before,
+    .crosshair-box::after {
+      content: '';
+      position: absolute;
+      width: 15px;
+      height: 15px;
+      border: 2px solid transparent;
+      transition: border-color 0.3s ease;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .crosshair-box::before {
+      top: -2px;
+      left: -2px;
+      border-top-color: #FACC15;
+      border-left-color: #FACC15;
+    }
+
+    .crosshair-box::after {
+      bottom: -2px;
+      right: -2px;
+      border-bottom-color: #FACC15;
+      border-right-color: #FACC15;
+    }
+
+    /* Glitch text animation */
+    @keyframes glitch {
+      0% {
+        text-shadow: 2px 0 0 red, -2px 0 0 cyan;
+        transform: translate(0);
+      }
+
+      10% {
+        text-shadow: -2px 0 0 red, 2px 0 0 cyan;
+        transform: translate(-2px, 1px);
+      }
+
+      20% {
+        text-shadow: 2px 0 0 red, -2px 0 0 cyan;
+        transform: translate(2px, -1px);
+      }
+
+      30% {
+        text-shadow: -2px 0 0 red, 2px 0 0 cyan;
+        transform: translate(-2px, 2px);
+      }
+
+      40% {
+        text-shadow: 2px 0 0 red, -2px 0 0 cyan;
+        transform: translate(2px, -2px);
+      }
+
+      50% {
+        text-shadow: -2px 0 0 red, 2px 0 0 cyan;
+        transform: translate(0);
+      }
+
+      100% {
+        text-shadow: none;
+        transform: translate(0);
+      }
+    }
+
+    .glitch-text:hover {
+      animation: glitch 0.3s infinite;
+      color: #fff;
+    }
+
+    /* Bat-Tech Button */
+    .tech-btn {
+      position: relative;
+      background: transparent;
+      color: #FACC15;
+      border: 1px solid #FACC15;
+      font-family: 'Share Tech Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      overflow: hidden;
+      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+      transition: all 0.3s ease;
+    }
+
+    .tech-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #FACC15;
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform 0.3s ease;
+      z-index: -1;
+    }
+
+    .tech-btn:hover {
+      color: #000;
+      box-shadow: 0 0 15px rgba(250, 204, 21, 0.6);
+    }
+
+    .tech-btn:hover::before {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+
+    /* Radar animation */
+    @keyframes radarSpin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .radar {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px dashed rgba(250, 204, 21, 0.3);
+      animation: radarSpin 10s linear infinite;
+    }
+
+    .radar-line {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 50%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #FACC15);
+      transform-origin: left center;
+      animation: radarSpin 4s linear infinite;
+    }
+
+    /* Typing cursor */
+    .typing-cursor::after {
+      content: '█';
+      animation: blink 1s step-end infinite;
+      color: #FACC15;
+      margin-left: 5px;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+
+<body class="font-hud selection:bg-bat-yellow selection:text-black">
+
+  <div class="scanlines"></div>
+  <div class="vignette"></div>
+
+  <!-- Top Tech HUD Bar -->
+  <header class="fixed top-0 w-full z-50 border-b border-bat-gray bg-bat-black/90 backdrop-blur-md">
+    <div class="max-w-[1400px] mx-auto px-4 py-2 flex justify-between items-center text-xs font-mono">
+      <div class="flex items-center gap-4 text-bat-yellow">
+        <span class="animate-pulse">● SYS_ONLINE</span>
+        <span class="hidden md:inline-block border-l border-bat-gray pl-4 text-gray-400">BAT-OS v9.3</span>
+      </div>
+      <div class="flex gap-6">
+        <a href="#intel" class="hover:text-bat-yellow transition-colors glitch-text">>> INTEL_DB</a>
+        <a href="#projects" class="hover:text-bat-yellow transition-colors glitch-text">>> CASE_FILES</a>
+        <a href="#uplink" class="hover:text-bat-yellow transition-colors glitch-text">>> COMMS</a>
+      </div>
+      <div class="text-bat-cyan hidden sm:block">
+        <span id="coord">LAT: 13.0827 / LON: 80.2707 [CHENNAI]</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Main Console -->
+  <section
+    class="relative min-h-screen flex flex-col justify-center pt-16 px-4 md:px-12 max-w-[1400px] mx-auto z-10 w-full">
+    <!-- Decorative background elements -->
+    <div class="absolute right-[5%] top-[20%] w-[300px] h-[300px] opacity-20 pointer-events-none hidden lg:block">
+      <div class="radar w-full h-full"></div>
+      <div class="radar w-[75%] h-[75%] top-[12.5%] left-[12.5%]"></div>
+      <div class="radar-line"></div>
+      <div class="absolute inset-0 bg-bat-yellow mix-blend-overlay rounded-full blur-[100px] opacity-30"></div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center w-full relative z-10">
+
+      <!-- Profile Data -->
+      <div class="lg:col-span-7 hud-panel p-8 md:p-12 crosshair-box">
+        <div class="font-mono text-bat-yellow text-sm mb-4 tracking-widest border-b border-bat-gray pb-2 inline-block">
+          IDENTIFICATION: CONFIRMED
+        </div>
+
+        <h1 class="font-hud font-bold text-6xl md:text-8xl leading-none mb-2 text-white uppercase"
+          style="text-shadow: 2px 2px 0 #000, 4px 4px 0 rgba(250, 204, 21, 0.4);">
+          DHANUSH <br> <span class="text-bat-yellow">RAJ</span>
+        </h1>
+
+        <div class="font-mono text-xl md:text-2xl text-gray-300 mb-6 typing-cursor">
+          > FRONT-END OPERATIVE
+        </div>
+
+        <p
+          class="font-mono text-sm text-gray-400 mb-8 max-w-lg leading-relaxed bg-bat-black p-4 border-l-2 border-bat-yellow">
+          Analyzing targets... Target identified as highly optimized, interactive user interfaces. Tactical approach
+          includes React, WebGL, and advanced CSS rendering. Architecture engineered for stealth, speed, and precision.
+        </p>
+
+        <div class="flex flex-wrap gap-4 font-mono text-xs">
+          <a href="#projects" class="tech-btn px-6 py-3">ACCESS_CASE_FILES</a>
+          <div class="flex flex-col justify-center px-4 border border-bat-gray">
+            <span class="text-gray-500">CLEARANCE:</span>
+            <span class="text-white">FULL LEVEL ALPHA</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tech Display -->
+      <div class="lg:col-span-5 h-[500px] hud-panel p-4 flex flex-col relative group">
+        <div
+          class="flex justify-between items-center border-b border-bat-gray pb-2 mb-4 font-mono text-xs text-bat-yellow">
+          <span>// VISUAL_FEED_ACTIVE</span>
+          <span class="group-hover:text-bat-cyan animate-pulse">REC ●</span>
+        </div>
+
+        <div class="relative flex-grow overflow-hidden border border-[#3f3f46]">
+          <!-- Target Overlay -->
+          <div class="absolute inset-0 z-10 pointer-events-none"
+            style="background-image: linear-gradient(rgba(0,182,212,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,182,212,0.1) 1px, transparent 1px); background-size: 20px 20px;">
+          </div>
+
+          <img src="/home/user/dhanush_raj/project/front end/portfolia/Untitled.jpeg"
+            class="w-full h-full object-cover grayscale contrast-[1.5] brightness-75 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-700"
+            style="filter: sepia(0.3) hue-rotate(170deg);" alt="Target">
+
+          <!-- Crosshairs on image -->
+          <div
+            class="absolute top-[30%] left-[30%] w-12 h-12 border border-bat-cyan rounded-full opacity-50 z-20 pointer-events-none hidden md:block">
+            <div class="absolute top-1/2 left-0 w-full h-[1px] bg-bat-cyan"></div>
+            <div class="absolute left-1/2 top-0 h-full w-[1px] bg-bat-cyan"></div>
+          </div>
+        </div>
+
+        <div
+          class="flex justify-between items-center pt-2 mt-4 border-t border-bat-gray font-mono text-[10px] text-gray-500">
+          <span>ENCRYPTION: AES-256</span>
+          <span class="text-bat-cyan">STATUS: NOMINAL</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Data Metrics (Stats) -->
+  <section id="intel" class="py-12 border-t border-b border-bat-gray bg-bat-black/50 z-10 relative">
+    <div class="max-w-[1400px] mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4 font-mono">
+      <div
+        class="hud-panel p-4 border-l-4 border-l-bat-yellow border-t-0 border-b-0 border-r-0 flex flex-col justify-between">
+        <span class="text-[10px] text-gray-500 mb-2">METRIC_01 // ACADEMIC</span>
+        <span class="text-4xl text-white font-bold tracking-tighter">8.12<span
+            class="text-bat-yellow text-xl">CGPA</span></span>
+      </div>
+      <div
+        class="hud-panel p-4 border-l-4 border-l-bat-cyan border-t-0 border-b-0 border-r-0 flex flex-col justify-between">
+        <span class="text-[10px] text-gray-500 mb-2">METRIC_02 // DEPLOYMENT</span>
+        <span class="text-4xl text-white font-bold tracking-tighter">1<span
+            class="text-bat-cyan text-xl">+YRS</span></span>
+      </div>
+      <div
+        class="hud-panel p-4 border-l-4 border-l-bat-yellow border-t-0 border-b-0 border-r-0 flex flex-col justify-between">
+        <span class="text-[10px] text-gray-500 mb-2">METRIC_03 // ARSENAL</span>
+        <span class="text-4xl text-white font-bold tracking-tighter">5<span
+            class="text-bat-yellow text-xl">+CORE</span></span>
+      </div>
+      <div
+        class="hud-panel p-4 border-l-4 border-l-bat-red border-t-0 border-b-0 border-r-0 flex flex-col justify-between">
+        <span class="text-[10px] text-gray-500 mb-2">METRIC_04 // EFFICIENCY</span>
+        <span class="text-4xl text-white font-bold tracking-tighter">100<span
+            class="text-bat-red text-xl">%</span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Skills / Tech Stack -->
+  <section class="py-20 px-4 max-w-[1400px] mx-auto z-10 relative">
+    <div class="flex items-end gap-4 mb-8 border-b border-bat-gray pb-4">
+      <h2 class="font-hud font-bold text-4xl text-white uppercase tracking-wider">Tactical Loadout</h2>
+      <span class="font-mono text-sm text-bat-yellow mb-1">>> SYSTEM CAPABILITIES</span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 font-mono text-sm">
+      <div class="hud-panel p-6 border-t-2 border-t-bat-yellow transition-all hover:bg-bat-yellow/5">
+        <h3 class="text-white font-bold mb-4">>> FRONT_END_FWD</h3>
+        <ul class="space-y-2 text-gray-400">
+          <li class="flex justify-between"><span>ReactJS</span> <span class="text-bat-yellow">95%</span></li>
+          <li class="flex justify-between"><span>Next.js</span> <span class="text-bat-yellow">90%</span></li>
+          <li class="flex justify-between"><span>TailwindCSS</span> <span class="text-bat-yellow">98%</span></li>
+        </ul>
+      </div>
+      <div class="hud-panel p-6 border-t-2 border-t-bat-cyan transition-all hover:bg-bat-cyan/5">
+        <h3 class="text-white font-bold mb-4">>> LOGIC_CORE</h3>
+        <ul class="space-y-2 text-gray-400">
+          <li class="flex justify-between"><span>JavaScript</span> <span class="text-bat-cyan">95%</span></li>
+          <li class="flex justify-between"><span>TypeScript</span> <span class="text-bat-cyan">85%</span></li>
+        </ul>
+      </div>
+      <div class="hud-panel p-6 border-t-2 border-t-bat-red transition-all hover:bg-bat-red/5">
+        <h3 class="text-white font-bold mb-4">>> RENDER_ENGINE</h3>
+        <ul class="space-y-2 text-gray-400">
+          <li class="flex justify-between"><span>Three.js</span> <span class="text-bat-red">80%</span></li>
+          <li class="flex justify-between"><span>WebGL</span> <span class="text-bat-red">75%</span></li>
+          <li class="flex justify-between"><span>Figma</span> <span class="text-bat-red">90%</span></li>
+        </ul>
+      </div>
+      <div class="hud-panel p-6 border-t-2 border-t-gray-500 transition-all hover:bg-gray-500/10">
+        <h3 class="text-white font-bold mb-4">>> OPS_INFRA</h3>
+        <ul class="space-y-2 text-gray-400">
+          <li class="flex justify-between"><span>Git/GitHub</span> <span class="text-white">SYS</span></li>
+          <li class="flex justify-between"><span>Docker</span> <span class="text-white">SYS</span></li>
+          <li class="flex justify-between"><span>PostgreSQL</span> <span class="text-white">SYS</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section id="projects" class="py-20 px-4 max-w-[1400px] mx-auto z-10 relative">
+    <div class="flex items-end gap-4 mb-12 border-b border-bat-gray pb-4">
+      <h2 class="font-hud font-bold text-4xl text-white uppercase tracking-wider">Classified Case Files</h2>
+      <span class="font-mono text-sm text-bat-red mb-1 animate-pulse">>> DECRYPTING DATA...</span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+      <!-- Project 1 -->
+      <div class="hud-panel flex flex-col md:flex-row group overflow-hidden crosshair-box">
+        <div class="w-full md:w-2/5 h-48 md:h-auto relative border-r border-[#3f3f46]">
+          <div
+            class="absolute inset-0 bg-bat-cyan/20 mix-blend-overlay z-10 pointer-events-none group-hover:opacity-0 transition-opacity">
+          </div>
+          <img
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuATefD_hmbSc5Dvb_ZGZfwn2361II-f2PDr-r8TF_DGYSaUHE_a2L4Dl2q1DJnLaUVbL_x7FjkajMsuFgyPRI1eAMhOapSfr4qlLKLtG6PcQBNvCDqfoDQCFM8iYjXB5WVeSc9JKWvABPxqnCCsGoZknfv_udYOnJltsLYmZCfm8Lg5Hs2-5E6Wma2TrJoxm7mso2l0HvWdsOEn419OF_CuuZF0ST5hCGwsfcAhilxl0guZI7C65GmJ9-uBFHqYIawDtt-ODpjK58E"
+            class="w-full h-full object-cover grayscale contrast-125 group-hover:grayscale-0 transition-all duration-500"
+            alt="Magic Bus">
+          <div
+            class="absolute top-2 left-2 bg-bat-black text-bat-yellow font-mono text-[10px] px-2 py-1 border border-bat-yellow z-20">
+            FILE_001</div>
+        </div>
+        <div class="w-full md:w-3/5 p-6 flex flex-col">
+          <h3 class="font-hud text-3xl font-bold uppercase text-white mb-2 group-hover:text-bat-cyan transition-colors">
+            Magic Bus Internship</h3>
+          <div class="flex gap-2 font-mono text-[10px] mb-4">
+            <span class="bg-[#1e1e24] px-2 py-1 text-gray-300 border border-gray-700">HTML</span>
+            <span class="bg-[#1e1e24] px-2 py-1 text-gray-300 border border-gray-700">CSS</span>
+            <span class="bg-[#1e1e24] px-2 py-1 text-gray-300 border border-gray-700">JS</span>
+          </div>
+          <p class="font-mono text-sm text-gray-400 mb-6 flex-grow leading-relaxed">
+            Engineered responsive web interfaces utilizing core front-end syntax. Executed strict form validation
+            algorithms and constructed modular UI components for deployment.
+          </p>
+        </div>
+      </div>
+
+      <!-- Project 2 -->
+      <div class="hud-panel flex flex-col md:flex-row group overflow-hidden crosshair-box">
+        <div class="w-full md:w-2/5 h-48 md:h-auto relative border-r border-[#3f3f46]">
+          <div
+            class="absolute inset-0 bg-bat-yellow/20 mix-blend-overlay z-10 pointer-events-none group-hover:opacity-0 transition-opacity">
+          </div>
+          <img
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAd0dbLIOcgIrpRc0e8Iulkoc6LG4drjk-YUTUb75tioAbI0e_PhFcaChbpTNGFapAemcpd0pH9ggLvMZfbbGWYEoLLNIhZfbVbau32xupalhPqM3nGIdaQng1O0Re2LktXM4S4qB5dOgnvZCDmBq_Yb8zkdB_ImPm7Mek4RYse5z6CTszRrkJsPFV6xhPQVD4cFVYRQr78mBbCzNT3rWOOlJ38vAhULwlLVQneNjLz_xGHm2rlw1WbOIjJonkcptmlo_0kKoPh5r8"
+            class="w-full h-full object-cover grayscale contrast-125 group-hover:grayscale-0 transition-all duration-500"
+            alt="Academic Explorations">
+          <div
+            class="absolute top-2 left-2 bg-bat-black text-bat-yellow font-mono text-[10px] px-2 py-1 border border-bat-yellow z-20">
+            FILE_002</div>
+        </div>
+        <div class="w-full md:w-3/5 p-6 flex flex-col">
+          <h3
+            class="font-hud text-3xl font-bold uppercase text-white mb-2 group-hover:text-bat-yellow transition-colors">
+            Academic Explorations</h3>
+          <div class="flex gap-2 font-mono text-[10px] mb-4">
+            <span class="bg-[#1e1e24] px-2 py-1 text-gray-300 border border-gray-700">PYTHON</span>
+            <span class="bg-[#1e1e24] px-2 py-1 text-gray-300 border border-gray-700">PHP</span>
+            <span class="bg-[#1e1e24] px-2 py-1 text-gray-300 border border-gray-700">SQL</span>
+          </div>
+          <p class="font-mono text-sm text-gray-400 mb-6 flex-grow leading-relaxed">
+            Loyola College B.Sc. tactical projects. Formulated integrated systems utilizing Python and PHP, backed by
+            persistent SQL database architectures.
+          </p>
+        </div>
+      </div>
+
+      <!-- Project 3 -->
+      <div class="hud-panel flex flex-col md:flex-row group overflow-hidden crosshair-box">
+        <div class="w-full md:w-2/5 h-48 md:h-auto relative border-r border-[#3f3f46]">
+          <div
+            class="absolute inset-0 bg-bat-red/20 mix-blend-overlay z-10 pointer-events-none group-hover:opacity-0 transition-opacity">
+          </div>
+          <img
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2369a_SL8nt6LZT0z4yREpDW_GIuN7QbLP6Izi23HBtpxezldY3ysE0_9HDzjbM2NzF-s0DYpSatX7gC0-XtYzXcp7ncyOaW6yHdh2mi8VqtqsEoRYRfBM2_ElsAHNUi6ToK643BDe0ApM1jn2BhQE84is5HNewsdyC2NRBQLxesjWdEjcs76exRHg9mA2yyRJxsmNd_QLSwQZJ6b64cc1mioFdm68Vc1T9by4BkLQpaXKMKP0M63ZqFtOGcP7PMMXAw36NZuuHw"
+            class="w-full h-full object-cover grayscale contrast-125 group-hover:grayscale-0 transition-all duration-500"
+            alt="Core Systems">
+          <div
+            class="absolute top-2 left-2 bg-bat-black text-bat-yellow font-mono text-[10px] px-2 py-1 border border-bat-yellow z-20">
+            FILE_003</div>
+        </div>
+        <div class="w-full md:w-3/5 p-6 flex flex-col">
+          <h3 class="font-hud text-3xl font-bold uppercase text-white mb-2 group-hover:text-bat-red transition-colors">
+            Core Systems</h3>
+          <div class="flex gap-2 font-mono text-[10px] mb-4">
+            <span class="bg-[#1e1e24] px-2 py-1 text-gray-300 border border-gray-700">OOP</span>
+            <span class="bg-[#1e1e24] px-2 py-1 text-gray-300 border border-gray-700">MYSQL</span>
+          </div>
+          <p class="font-mono text-sm text-gray-400 mb-6 flex-grow leading-relaxed">
+            Constructed structural object-oriented paradigms and robust relational database layouts leveraging highly
+            secured MySQL environments.
+          </p>
+        </div>
+      </div>
+
+      <!-- Project 4 -->
+      <div class="hud-panel flex flex-col md:flex-row group overflow-hidden crosshair-box">
+        <div class="w-full md:w-2/5 h-48 md:h-auto relative border-r border-[#3f3f46]">
+          <div
+            class="absolute inset-0 bg-gray-500/20 mix-blend-overlay z-10 pointer-events-none group-hover:opacity-0 transition-opacity">
+          </div>
+          <img
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-t8F3oqQjk-4BXlVf2i8nXk7uuHHA5Pe95myY1vbqdncqeEp3u-qqr7mmj_K638e8NHZgeTp3jrXKL2HSbjbAkBkEoxuJ0h3ai3lJg1ooG04MCprUO5SzV_RelC3_YPXm70kQRdMVxYACbC9Joh45GirIVfMDcC_bSkd8n3NFiCCmWz0Ko1Ibdwt31kzmWJr4Gpb2Zigg1jzu8NgQDjNq_0WA3iNk2fW0lM8KcW2hbWjPNbaSFo3kr2wh7fqC-BrNbbTZmyG4tu4"
+            class="w-full h-full object-cover grayscale contrast-125 group-hover:grayscale-0 transition-all duration-500"
+            alt="Public Speaking & MC">
+          <div
+            class="absolute top-2 left-2 bg-bat-black text-bat-yellow font-mono text-[10px] px-2 py-1 border border-bat-yellow z-20">
+            FILE_004</div>
+        </div>
+        <div class="w-full md:w-3/5 p-6 flex flex-col">
+          <h3 class="font-hud text-3xl font-bold uppercase text-white mb-2 group-hover:text-white transition-colors">
+            Public Address</h3>
+          <div class="flex gap-2 font-mono text-[10px] mb-4">
+            <span class="bg-[#1e1e24] px-2 py-1 text-gray-300 border border-gray-700">M.C.</span>
+            <span class="bg-[#1e1e24] px-2 py-1 text-gray-300 border border-gray-700">LOYOLA COLLEGE</span>
+          </div>
+          <p class="font-mono text-sm text-gray-400 mb-6 flex-grow leading-relaxed">
+            Directed large-scale academic and technical operations as Master of Ceremony. Managed crowd psychology and
+            maintained event mission parameters.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Communication Uplink -->
+  <section id="uplink" class="relative py-24 mt-12 bg-bat-gray/20 border-t border-bat-gray z-10 w-full overflow-hidden">
+    <div
+      class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1544256718-3b61023a461a?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center grayscale opacity-10 mix-blend-overlay">
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 relative z-10">
+
+      <div class="text-center mb-12">
+        <h2 class="font-hud text-5xl font-bold uppercase tracking-widest text-white mb-2">Secure Uplink</h2>
+        <div class="font-mono text-bat-yellow text-sm">>> ESTABLISH CONNECTION... AVAILABILITY: Q4 2024</div>
+      </div>
+
+      <div class="hud-panel p-8 md:p-12 crosshair-box max-w-2xl mx-auto shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+
+        <form id="tech-form" class="space-y-6 font-mono text-sm">
+          <div class="space-y-2">
+            <label class="text-bat-cyan uppercase">> Operative ID (Name)</label>
+            <input type="text"
+              class="w-full bg-bat-black border border-bat-gray p-3 text-white focus:outline-none focus:border-bat-cyan transition-colors"
+              placeholder="[ ENTER ALIAS ]" required>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-bat-cyan uppercase">> Comm Channel (Email)</label>
+            <input type="email"
+              class="w-full bg-bat-black border border-bat-gray p-3 text-white focus:outline-none focus:border-bat-cyan transition-colors"
+              placeholder="[ ENTER FREQUENCY ]" required>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-bat-cyan uppercase">> Mission Classification</label>
+            <select
+              class="w-full bg-bat-black border border-bat-gray p-3 text-white focus:outline-none focus:border-bat-cyan transition-colors appearance-none"
+              required>
+              <option value="" disabled selected>[ SELECT DIRECTIVE ]</option>
+              <option value="project">Combat Operation (Project)</option>
+              <option value="consult">Reconnaissance (Consulting)</option>
+              <option value="intel">Exchange Intel</option>
+            </select>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-bat-cyan uppercase">> Encrypted Message</label>
+            <textarea rows="4"
+              class="w-full bg-bat-black border border-bat-gray p-3 text-white focus:outline-none focus:border-bat-cyan transition-colors resize-none"
+              placeholder="[ TRANSMIT DATA... ]" required></textarea>
+          </div>
+
+          <button type="submit" id="transmit-btn"
+            class="tech-btn w-full py-4 mt-4 font-bold text-lg focus:outline-none">
+            INITIATE SECURE TRANSMISSION
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </section>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // Your Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyD14H-h_9sT_iUSx9vV1JKyqem4UU8riUs",
+      authDomain: "database-f8f2d.firebaseapp.com",
+      projectId: "database-f8f2d",
+      storageBucket: "database-f8f2d.firebasestorage.app",
+      messagingSenderId: "181829118604",
+      appId: "1:181829118604:web:e837b9f2529735746d29a9"
+    };
+
+    // Initialize
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Form Submission Logic
+    const form = document.getElementById('tech-form');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Select elements by index or name
+      const data = {
+        operativeId: form.querySelector('input[type="text"]').value,
+        commChannel: form.querySelector('input[type="email"]').value,
+        missionClass: form.querySelector('select').value,
+        message: form.querySelector('textarea').value,
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        await addDoc(collection(db, "batman"), data);
+        alert("Transmission Successful.");
+        form.reset();
+      } catch (error) {
+        console.error("Transmission Error:", error);
+        alert("Transmission Failed: " + error.message);
+      }
+    });
+  </script>
+
+  <!-- Footer -->
+  <footer class="border-t border-bat-gray bg-bat-black py-6 relative z-10 text-center font-mono text-xs text-gray-500">
+    <div class="max-w-[1400px] mx-auto flex flex-col md:flex-row justify-between items-center px-4 gap-4">
+      <div class="text-bat-yellow uppercase tracking-widest font-hud text-lg font-bold">DHANUSH_RAJ // NETWORK</div>
+      <div class="flex gap-6 uppercase">
+        <a href="#" class="hover:text-bat-cyan transition-colors glitch-text">GitHub_Uplink</a>
+        <a href="#" class="hover:text-bat-cyan transition-colors glitch-text">LinkedIn_Data</a>
+        <a href="#" class="hover:text-bat-cyan transition-colors glitch-text">Twitter_Freq</a>
+      </div>
+      <div>ENCRYPTION KEY: 2024-DR-0X9. ALL RIGHTS SECURED.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Form action simulation
+    document.getElementById('tech-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const btn = document.getElementById('transmit-btn');
+      const originalText = btn.innerText;
+
+      btn.innerText = 'ENCRYPTING PACKETS...';
+      btn.style.color = '#fff';
+      btn.style.borderColor = '#06b6d4';
+
+      setTimeout(() => {
+        btn.innerText = 'DATA TRANSMITTED TO BAT-CAVE.';
+        btn.style.color = '#000';
+        btn.style.background = '#06b6d4';
+
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.style.color = '';
+          btn.style.borderColor = '';
+          btn.style.background = '';
+          e.target.reset();
+        }, 3000);
+      }, 1500);
+    });
+  </script>
+</body>
+
+</html>
